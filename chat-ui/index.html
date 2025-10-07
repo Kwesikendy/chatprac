@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KenolChat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #075e54;
+            color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .header-icons svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .view-code-btn {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .view-code-btn:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        #codeView {
+            display: none;
+            padding: 20px;
+            background: #fff;
+            height: 100vh;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #e5ddd5;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text fill="%23f0f0f0" font-size="20" y="50%">💬</text></svg>');
+            background-repeat: repeat;
+            background-size: 50px 50px;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .message.me {
+            align-items: flex-end;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .message.me .message-bubble {
+            background-color: #dcf8c6;
+            color: #303030;
+        }
+
+        .message.them .message-bubble {
+            background-color: white;
+            color: #333;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .timestamp {
+            font-size: 11px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .footer {
+            background-color: white;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border-radius: 25px;
+            padding: 5px 15px;
+        }
+
+        #messageInput {
+            flex: 1;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 14px;
+            resize: none;
+        }
+
+        .emoji-btn, .send-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+        }
+
+        .emoji-btn:hover, .send-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .emoji-btn svg, .send-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: #666;
+        }
+
+        .send-btn {
+            background-color: #075e54;
+            color: white;
+        }
+
+        .send-btn svg {
+            fill: white;
+        }
+
+        .send-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 600px) {
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+
+        /* Custom scrollbar */
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-title">KenolChat</div>
+        <div class="header-icons">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+            <svg viewBox="0 0 24 24">
+                <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+            <button class="view-code-btn" id="viewCodeBtn">View Code</button>
+        </div>
+    </header>
+
+    <main class="chat-area" id="chatArea">
+        <!-- Sample messages -->
+        <div class="message them">
+            <div class="message-bubble">Hey, how's it going?</div>
+            <div class="timestamp">10:30 AM</div>
+        </div>
+        <div class="message me">
+            <div class="message-bubble">I'm good, thanks! Working on some cool projects.</div>
+            <div class="timestamp">10:32 AM</div>
+        </div>
+        <div class="message them">
+            <div class="message-bubble">That sounds awesome! Tell me more.</div>
+            <div class="timestamp">10:33 AM</div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <button class="emoji-btn" aria-label="Add emoji">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+        </button>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Type a message...">
+        </div>
+        <button class="send-btn" id="sendBtn" disabled aria-label="Send message">
+            <svg viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+            </svg>
+        </button>
+    </footer>
+
+    <div id="codeView">
+        <pre id="codeContent"></pre>
+    </div>
+
+    <script>
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatArea = document.getElementById('chatArea');
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message me';
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">${text}</div>
+                    <div class="timestamp">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                `;
+                chatArea.appendChild(messageDiv);
+                messageInput.value = '';
+                sendBtn.disabled = true;
+                chatArea.scrollTop = chatArea.scrollHeight;
+
+                // Simple animation
+                messageDiv.style.opacity = '0';
+                messageDiv.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    messageDiv.style.transition = 'opacity 0.3s, transform 0.3s';
+                    messageDiv.style.opacity = '1';
+                    messageDiv.style.transform = 'translateY(0)';
+                }, 10);
+            }
+        }
+
+        messageInput.addEventListener('input', () => {
+            sendBtn.disabled = !messageInput.value.trim();
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        const viewCodeBtn = document.getElementById('viewCodeBtn');
+        const codeView = document.getElementById('codeView');
+        const codeContent = document.getElementById('codeContent');
+        let isCodeView = false;
+
+        viewCodeBtn.addEventListener('click', () => {
+            if (isCodeView) {
+                codeView.style.display = 'none';
+                document.querySelector('.chat-area').style.display = 'block';
+                document.querySelector('.footer').style.display = 'flex';
+                viewCodeBtn.textContent = 'View Code';
+            } else {
+                codeView.style.display = 'block';
+                document.querySelector('.chat-area').style.display = 'none';
+                document.querySelector('.footer').style.display = 'none';
+                codeContent.textContent = document.documentElement.outerHTML;
+                viewCodeBtn.textContent = 'Back to Chat';
+            }
+            isCodeView = !isCodeView;
+        });
+    </script>
+</body>
+</html>

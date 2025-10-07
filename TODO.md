@@ -1,0 +1,5 @@
+- [x] Add "View Code" button to the header in index.html
+- [x] Add a hidden code display div in the HTML
+- [x] Add JavaScript to toggle between chat view and code view
+- [x] Test the toggle functionality locally
+- [ ] Deploy the chat-ui to Vercel
